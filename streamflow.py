@@ -27,3 +27,5 @@ def plot_streamflow(dates, flows, sites):
 sites = ["10163000", "10155200", "10155500", "10154200", "10155000"]
 dates, flows = load_streamflow("June-2021-Provo-River-Streamflow-Rates.csv")
 plot_streamflow(dates, flows, sites)
+
+plt.savefig("provo_streamflow.png", dpi=150, bbox_inches="tight")
