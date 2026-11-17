@@ -2,9 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def load_streamflow(filename):
-    data = np.genfromtxt('June-2021-Provo-River-Streamflow-Rates.csv', delimiter=',', dtype=str, skip_header=1)
-    dates = data[:, 0].astype('datetime64[m]')
-    flows = data[:, 1:].astype(float)
+    data = np.genfromtxt(filename, delimiter=',', dtype=str, skip_header=1)
+    data = data[~np.isin(data[:, 0], ['Max', 'Average'])]
+    dates = data[:, 0]
+    flow_text = np.where(data[:, 1:] == '', 'nan', data[:, 1:])
+    flows = flow_text.astype(float)
     return dates, flows
 
 
@@ -37,7 +39,7 @@ def summarize(dates, flows, sites):
             max_index = np.argmax(column) # np.argmax finds where the maximum value is at in the column.
             max_flow = np.max(column) # np.max calculates the maximum value in the column.
             min_flow = np.min(column) # np.min calculates the minimum value in the column.
-            max_date = np.datetime_as_string(dates[max_index], unit='m').replace('T', ' ') # This function converts the date into a string.
+            max_date = dates[max_index] # Use the date exactly as it appears in the CSV.
 
             print(f"{site:<12}{max_flow:<12.1f}{max_date:<21}{min_flow:<12.1f}{mean_flow:.1f}") # This where the table will get printed out from.
             f.write(f"{site},{max_flow},{max_date},{min_flow},{mean_flow:.1f}\n") # This is what will get written to the file.
@@ -51,7 +53,7 @@ plt.savefig("provo_streamflow.png", dpi=150, bbox_inches="tight")
 
 threshold = float(input("Give me a flow threshold in cfs: ")) # This is the input function that has the user type in a flow threshold. It is set to be a variable.
 
-above_threshold = flows[:, 0] > threshold # This variable is set to a True or False array that checks if the flow is above the threshold for the first site.
-hours_above_threshold = np.sum(above_threshold) * 0.25 # All of the values that are True in the array are summed up and multipkied by 0.25.
-
-print(f"The flow was above {threshold:.1f} cfs for {hours_above_threshold:.2f} hours in June 2021.") # This line of code prints out the results for the threshold values.
+for i, site in enumerate(sites):
+    above_threshold = flows[:, i] > threshold # This creates a True or False array for this gauge.
+    hours_above_threshold = np.sum(above_threshold) * 0.25 # Sums up all of the True values and multiplies them by 0.25.
+    print(f"Gauge {site}: flow was above {threshold:.1f} cfs for {hours_above_threshold:.2f} hours in June 2021.") # This is what will print out when the threshold is calculated.
